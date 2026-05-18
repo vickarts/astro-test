@@ -1,31 +1,70 @@
 ---
 const navItems = [
-	{ href: '/', label: 'Home' },
-	{ href: '/about', label: 'About' },
+	{
+		href: '/',
+		label: 'Home',
+		match: ['/'],
+	},
+	{
+		href: '/about',
+		label: 'About',
+		match: ['/about', '/team'],
+	},
 ];
 
-const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
+const normalizePath = (path) => path.replace(/\/$/, '') || '/';
+
+const currentPath = normalizePath(Astro.url.pathname);
+
+const isActivePath = (item) => {
+	return item.match.some((path) => {
+		const normalizedPath = normalizePath(path);
+
+		// Exact match
+		if (currentPath === normalizedPath) {
+			return true;
+		}
+
+		// Section-based matching for nested routes
+		if (
+			normalizedPath !== '/' &&
+			currentPath.startsWith(`${normalizedPath}/`)
+		) {
+			return true;
+		}
+
+		return false;
+	});
+};
 ---
 
 <header class="border-b border-white/10 bg-slate-950/90">
-	<nav class="mx-auto flex max-w-5xl items-center justify-between px-6 py-5" aria-label="Main navigation">
-		<a class="text-lg font-bold tracking-tight text-white" href="/">Astro Test</a>
+	<nav
+		class="mx-auto flex max-w-5xl items-center justify-between px-6 py-5"
+		aria-label="Main navigation"
+	>
+		<a
+			class="text-lg font-bold tracking-tight text-white"
+			href="/"
+		>
+			Astro Test
+		</a>
+
 		<div class="flex items-center gap-2">
 			{
 				navItems.map((item) => {
-					const itemPath = item.href.replace(/\/$/, '') || '/';
-					const isActive = currentPath === itemPath || (currentPath === '/home' && itemPath === '/');
+					const isActive = isActivePath(item);
 
 					return (
 						<a
+							href={item.href}
+							aria-current={isActive ? 'page' : undefined}
 							class:list={[
 								'rounded-md px-3 py-2 text-sm font-medium transition',
 								isActive
 									? 'bg-white text-slate-950'
 									: 'text-slate-300 hover:bg-white/10 hover:text-white',
 							]}
-							href={item.href}
-							aria-current={isActive ? 'page' : undefined}
 						>
 							{item.label}
 						</a>
